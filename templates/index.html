@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f0f0; }
+        .game-area { max-width: 600px; margin: 0 auto; text-align: center; }
+        .word-display { font-size: 24px; margin: 20px 0; }
+        input { font-size: 18px; padding: 10px; width: 80%; }
+    </style>
+</head>
+<body>
+    <div class="game-area">
+        <h2 id="score">Score: 0</h2>
+        <h3 id="time">Time: 60s</h3>
+        <div class="word-display">
+            <h1 id="current-word">FEES</h1>
+        </div>
+        <input type="text" id="word-input" placeholder="Type here...">
+    </div>
+    <script>
+        let score = 0;
+        let timeLeft = 60;
+        let currentWord = "FEES";
+
+        const scoreElement = document.getElementById("score");
+        const timeElement = document.getElementById("time");
+        const wordElement = document.getElementById("current-word");
+        const inputElement = document.getElementById("word-input");
+
+        inputElement.addEventListener("input", checkInput);
+
+        function checkInput() {
+            if (inputElement.value.toLowerCase() === currentWord.toLowerCase()) {
+                score += currentWord.length;
+                scoreElement.textContent = `Score: ${score}`;
+                currentWord = "DUNS"; // For now, just change to a fixed word
+                wordElement.textContent = currentWord;
+                inputElement.value = "";
+            }
+        }
+
+        // Simple timer
+        const timer = setInterval(() => {
+            timeLeft--;
+            timeElement.textContent = `Time: ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                alert("Game Over!");
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

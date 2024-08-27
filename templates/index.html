@@ -3,49 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Typing Game</title>
+    <title>Word Fall Typing Game</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f0f0; }
-        .game-area { max-width: 600px; margin: 0 auto; text-align: center; }
-        .word-display { font-size: 24px; margin: 20px 0; }
-        input { font-size: 18px; padding: 10px; width: 80%; }
+        body { font-family: Arial, sans-serif; background-color: #2c3e50; color: #ecf0f1; margin: 0; padding: 0; }
+        .game-container { display: flex; height: 100vh; }
+        .sidebar { width: 200px; padding: 20px; background-color: #34495e; }
+        .game-area { flex-grow: 1; position: relative; overflow: hidden; }
+        .word { position: absolute; font-size: 24px; }
+        .typed { color: #2ecc71; }
+        .untyped { color: #e74c3c; }
+        #input-area { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; }
+        #word-input { width: 100%; font-size: 18px; padding: 10px; }
+        #score, #time { margin-bottom: 20px; }
+        .character { display: inline-block; transition: color 0.2s; }
     </style>
 </head>
 <body>
-    <div class="game-area">
-        <h2 id="score">Score: 0</h2>
-        <h3 id="time">Time: 60s</h3>
-        <div class="word-display">
-            <h1 id="current-word">FEES</h1>
+    <div class="game-container">
+        <div class="sidebar">
+            <h2 id="score">Score: 0</h2>
+            <h3 id="time">Time: 60s</h3>
+            <h3 id="level">Level: 1</h3>
         </div>
-        <input type="text" id="word-input" placeholder="Type here...">
+        <div class="game-area" id="game-area">
+            <div id="input-area">
+                <input type="text" id="word-input" placeholder="Type here...">
+            </div>
+        </div>
     </div>
     <script>
+        let words = [];
+        const gameArea = document.getElementById("game-area");
+        const inputElement = document.getElementById("word-input");
         let score = 0;
         let timeLeft = 60;
-        let currentWord = "FEES";
+        let level = 1;
 
-        const scoreElement = document.getElementById("score");
-        const timeElement = document.getElementById("time");
-        const wordElement = document.getElementById("current-word");
-        const inputElement = document.getElementById("word-input");
+        function createWord() {
+            const word = "LEGO"; // Replace with random word generation
+            const wordElement = document.createElement("div");
+            wordElement.className = "word";
+            wordElement.style.left = `${Math.random() * (gameArea.offsetWidth - 100)}px`;
+            wordElement.style.top = "0px";
+            words.push({ element: wordElement, word, typed: "" });
+            gameArea.appendChild(wordElement);
+            renderWord(words[words.length - 1]);
+        }
 
-        inputElement.addEventListener("input", checkInput);
+        function renderWord(wordObj) {
+            wordObj.element.innerHTML = wordObj.word.split('').map((char, index) => 
+                `<span class="character ${index < wordObj.typed.length ? 'typed' : 'untyped'}">${char}</span>`
+            ).join('');
+        }
+
+        function updateWords() {
+            words.forEach((wordObj, index) => {
+                const top = parseFloat(wordObj.element.style.top) + 1;
+                wordObj.element.style.top = `${top}px`;
+                if (top > gameArea.offsetHeight) {
+                    gameArea.removeChild(wordObj.element);
+                    words.splice(index, 1);
+                }
+            });
+        }
 
         function checkInput() {
-            if (inputElement.value.toLowerCase() === currentWord.toLowerCase()) {
-                score += currentWord.length;
-                scoreElement.textContent = `Score: ${score}`;
-                currentWord = "DUNS"; // For now, just change to a fixed word
-                wordElement.textContent = currentWord;
-                inputElement.value = "";
+            const typed = inputElement.value.toUpperCase();
+            words.sort((a, b) => 
+                parseFloat(b.element.style.top) - parseFloat(a.element.style.top)
+            );
+            
+            for (let wordObj of words) {
+                if (wordObj.word.startsWith(typed)) {
+                    wordObj.typed = typed;
+                    renderWord(wordObj);
+                    if (typed === wordObj.word) {
+                        score += wordObj.word.length;
+                        document.getElementById("score").textContent = `Score: ${score}`;
+                        gameArea.removeChild(wordObj.element);
+                        words = words.filter(w => w !== wordObj);
+                        inputElement.value = "";
+                        break;
+                    }
+                    return;
+                }
             }
         }
 
-        // Simple timer
+        inputElement.addEventListener("input", checkInput);
+
+        setInterval(() => {
+            createWord();
+            updateWords();
+        }, 2000);
+
+        // Timer
         const timer = setInterval(() => {
             timeLeft--;
-            timeElement.textContent = `Time: ${timeLeft}s`;
+            document.getElementById("time").textContent = `Time: ${timeLeft}s`;
             if (timeLeft <= 0) {
                 clearInterval(timer);
                 alert("Game Over!");
